@@ -1,6 +1,7 @@
 """
-Jon Kraft, October 30 2022
+Jon Kraft, Oct 30 2022
 https://github.com/jonkraft/Pluto_Beamformer
+video walkthrough of this at:  https://www.youtube.com/@jonkraft
 
 """
 # Copyright (C) 2020 Analog Devices, Inc.
@@ -50,9 +51,9 @@ rx_gain1 = 40
 tx_lo = rx_lo
 tx_gain = -3
 fc0 = int(200e3)
-phase_cal = 60
-num_scans = 500
-Plot_Compass = True
+phase_cal = 0
+num_scans = 5
+Plot_Compass = False
 
 ''' Set distance between Rx antennas '''
 d_wavelength = 0.5                  # distance between elements as a fraction of wavelength.  This is normally 0.5
