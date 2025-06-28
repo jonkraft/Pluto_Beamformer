@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Jon Kraft, Nov 5 2022
 https://github.com/jonkraft/Pluto_Beamformer
@@ -73,11 +75,13 @@ import adi
 import numpy as np
 import pyqtgraph as pg   # pyqtgraph will plot MUCH faster than matplotlib (https://pyqtgraph.readthedocs.io/en/latest/getting_started/installation.html)
 from pyqtgraph.Qt import QtCore, QtGui
+from datetime import datetime
+import time
 
 '''Setup'''
 samp_rate = 2e6    # must be <=30.72 MHz if both channels are enabled
 NumSamples = 2**12
-rx_lo = 2.3e9
+rx_lo = 2.455e9
 rx_mode = "manual"  # can be "manual" or "slow_attack"
 rx_gain0 = 40
 rx_gain1 = 40
@@ -227,15 +231,36 @@ delay_phases, peak_dbfs, peak_delay, steer_angle, peak_sum, peak_delta, monopuls
 delay = peak_delay  # this will be the starting point if we are doing monopulse tracking
 tracking_angles = np.ones(tracking_length)*180
 tracking_angles[:-1] = -180   # make a line across the plot when tracking begins
+previous_max_angle = None
 
 curve1 = p1.plot(tracking_angles)
 def update_tracker():
-    global tracking_angles, delay
+    global tracking_angles, delay, previous_max_angle
     delay = Tracking(delay)
     tracking_angles = np.append(tracking_angles, calcTheta(delay))
     tracking_angles = tracking_angles[1:]
+    average_angle = np.mean(tracking_angles)    
+    max_angle = np.max(tracking_angles)    
     curve1.setData(tracking_angles, np.arange(tracking_length))
-    
+    file_path = 'tracking_angle.txt'
+    # with open(file_path, 'a') as file:
+    # Print current date & time, variable's value, and carriage return to the file
+    #    print(f"{datetime.now()} - Average angle: {average_angle}", end='\r', file=file)    
+    # print(f"{datetime.now()} - Maximum angle: {max_angle}", end='\r')        
+
+    # Check if the maximum angle has changed
+    if previous_max_angle is None or max_angle != previous_max_angle:
+        # Calculate the delta (change) in the maximum angle
+        delta_angle = round(max_angle - previous_max_angle, 4) if previous_max_angle is not None else 0
+
+        # Print the maximum angle and delta to the file
+        # file_path = 'tracking_angle_with_deltas.txt'
+        # with open(file_path, 'a') as file:
+        print(f"{datetime.now()} - Maximum angle: {round(max_angle, 4)}, Delta: {round(delta_angle, 4)}", end='\r')
+
+        # Update the previous_max_angle
+        previous_max_angle = max_angle
+
 timer = pg.QtCore.QTimer()
 timer.timeout.connect(update_tracker)
 timer.start(0)
@@ -249,4 +274,3 @@ if __name__ == '__main__':
 sdr.tx_destroy_buffer()
 
 
-        
